@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Grid Dash 3D - Emerald Obby Runner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #02120a;
+            color: #ecfdf5;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .game-shell {
+            width: 100%;
+            max-width: 960px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-bar {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(6, 40, 22, 0.88);
+            border: 2px solid #10b981;
+            border-radius: 18px;
+            padding: 12px 20px;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.28);
+        }
+
+        .title-group h1 {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            color: #6ee7b7;
+            text-shadow: 0 0 12px rgba(52, 211, 153, 0.65);
+        }
+
+        .title-group p {
+            font-size: 0.78rem;
+            color: #a7f3d0;
+            opacity: 0.88;
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.86rem;
+            font-weight: 800;
+        }
+
+        .stat-pill {
+            background: rgba(2, 24, 13, 0.92);
+            border: 1px solid #34d399;
+            padding: 6px 14px;
+            border-radius: 999px;
+            color: #6ee7b7;
+        }
+
+        .mute-corner-btn {
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 0.82rem;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 2px solid #6ee7b7;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #02120a;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+            transition: transform 0.12s ease, filter 0.12s ease;
+        }
+
+        .mute-corner-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .mute-corner-btn.muted {
+            background: rgba(2, 24, 13, 0.92);
+            color: #fca5a5;
+            border-color: #f87171;
+            box-shadow: none;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            max-height: 68vh;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 3px solid #10b981;
+            box-shadow: 0 0 38px rgba(16, 185, 129, 0.38), inset 0 0 22px rgba(0, 0, 0, 0.85);
+            background: #03190e;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #03190e;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 4px;
+        }
+
+        .btn {
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 0.92rem;
+            padding: 12px 24px;
+            border-radius: 14px;
+            border: 2px solid #6ee7b7;
+            color: #02120a;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.42), inset 0 2px 2px rgba(255, 255, 255, 0.45);
+            transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(52, 211, 153, 0.58);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: rgba(6, 40, 22, 0.92);
+            color: #6ee7b7;
+            border-color: #10b981;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        }
+
+        .diff-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .diff-btn {
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            padding: 7px 16px;
+            border-radius: 999px;
+            border: 2px solid rgba(52, 211, 153, 0.45);
+            background: rgba(6, 40, 22, 0.85);
+            color: #a7f3d0;
+            transition: all 0.15s ease;
+        }
+
+        .diff-btn:hover {
+            border-color: #6ee7b7;
+            color: #ecfdf5;
+        }
+
+        .diff-btn.active {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #02120a;
+            border-color: #ecfdf5;
+            box-shadow: 0 0 16px rgba(52, 211, 153, 0.55);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-shell">
+        <!-- Top Title & Live Progress HUD -->
+        <div class="header-bar">
+            <div class="title-group">
+                <h1>NEON GRID DASH 3D</h1>
+                <p>Select Difficulty &bull; Beat the 3D Emerald Obby &bull; Enter the Portal</p>
+            </div>
+            <div class="hud-stats">
+                <div class="stat-pill">LEVEL <span id="level-name-val">NORMAL</span></div>
+                <div class="stat-pill">SCORE <span id="score-val">0</span></div>
+                <div class="stat-pill">PROGRESS <span id="progress-val">0</span>%</div>
+                <div class="stat-pill">BEST <span id="best-val">0</span></div>
+                <button type="button" class="mute-corner-btn" id="sound-btn" title="Mute / Unmute Audio">🔊 UNMUTED</button>
+            </div>
+        </div>
+
+        <!-- Difficulty Selector Pills -->
+        <div class="diff-bar" id="diff-bar">
+            <button type="button" class="diff-btn" data-diff="EASY">1. EASY (2★)</button>
+            <button type="button" class="diff-btn active" data-diff="NORMAL">2. NORMAL (5★)</button>
+            <button type="button" class="diff-btn" data-diff="HARD">3. HARD (8★)</button>
+            <button type="button" class="diff-btn" data-diff="DEMON">4. DEMON (10★)</button>
+        </div>
+
+        <!-- Responsive 3D HTML5 Game Canvas -->
+        <div class="canvas-wrapper" id="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <!-- Controls Outside the Canvas -->
+        <div class="controls-row">
+            <button type="button" class="btn" id="jump-btn">JUMP / ORB (SPACE)</button>
+            <button type="button" class="btn btn-secondary" id="practice-btn">PRACTICE: OFF</button>
+            <button type="button" class="btn btn-secondary" id="cam-btn">3D ANGLE: DYNAMIC</button>
+            <button type="button" class="btn btn-secondary" id="restart-btn">RESTART (R)</button>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. EASY-TO-TWEAK CONFIG (GAME_CONFIG) & DIFFICULTY LEVELS
+        // =========================================================================
+        const GAME_CONFIG = {
+            PLAYER_SPEED: 500,          // Base forward scroll speed (updated per difficulty)
+            JUMP_VELOCITY: -735,        // Crisp upward jump impulse (more negative = higher jump)
+            GRAVITY: 2550,              // Snappy heavy gravity for predictable Geometry Dash arcs
+            SPAWN_RATE_SECONDS: 1.0,    // Base beat spacing reference
+            LEVEL_DURATION_SEC: 36,     // Active level duration until the 100% Victory Portal
+            PLAYER_SIZE: 36,            // Width, height, and 3D depth of the emerald cube
+            TRACK_DEPTH: 76,            // 3D depth of the neon emerald obby runway
+            SHIELD_SPAWN_SEC: 15,       // Rare glowing shield spawns every 15 seconds
+            SHIELD_DURATION_SEC: 5.0    // Shield protects the player for 5 seconds
+        };
+
+        const DIFFICULTY_LEVELS = {
+            EASY: {
+                label: 'EASY (2★)',
+                subtitle: 'Chill Emerald Meadow • Single Spikes & Wide Platforms',
+                speed: 410,
+                duration: 28,
+                beatSec: 0.13
+            },
+            NORMAL: {
+                label: 'NORMAL (5★)',
+                subtitle: 'Neon Circuit • Double Spikes, Staircases & Jump Orbs',
+                speed: 490,
+                duration: 34,
+                beatSec: 0.115
+            },
+            HARD: {
+                label: 'HARD (8★)',
+                subtitle: 'Cyber Gauntlet • Triple Spikes, Ceiling Tunnels & Sky Orbs',
+                speed: 540,
+                duration: 38,
+                beatSec: 0.105
+            },
+            DEMON: {
+                label: 'DEMON (10★)',
+                subtitle: 'Emerald Abyss • Precision Triple-Spikes & Double-Orb Chains',
+                speed: 590,
+                duration: 42,
+                beatSec: 0.095
+            }
+        };
+
+        const BEST_SCORE_STORAGE_KEY = 'neon_grid_dash_3d_best_scores_v1';
+        let currentDifficulty = 'NORMAL';
+        const bestScoreByDifficulty = loadSavedBestScores();
+
+        function loadSavedBestScores() {
+            const defaults = { EASY: 0, NORMAL: 0, HARD: 0, DEMON: 0 };
+            try {
+                const raw = localStorage.getItem(BEST_SCORE_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    return {
+                        EASY: Number(parsed.EASY) || 0,
+                        NORMAL: Number(parsed.NORMAL) || 0,
+                        HARD: Number(parsed.HARD) || 0,
+                        DEMON: Number(parsed.DEMON) || 0
+                    };
+                }
+            } catch (_) {}
+            return defaults;
+        }
+
+        function saveBestScore(diffKey, newBest) {
+            bestScoreByDifficulty[diffKey] = newBest;
+            try {
+                localStorage.setItem(BEST_SCORE_STORAGE_KEY, JSON.stringify(bestScoreByDifficulty));
+            } catch (_) {}
+        }
+
+        // =========================================================================
+        // 2. CANVAS & DOM REFERENCES
+        // =========================================================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        const levelNameEl = document.getElementById('level-name-val');
+        const scoreEl = document.getElementById('score-val');
+        const progressEl = document.getElementById('progress-val');
+        const bestEl = document.getElementById('best-val');
+        const jumpBtn = document.getElementById('jump-btn');
+        const practiceBtn = document.getElementById('practice-btn');
+        const camBtn = document.getElementById('cam-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const soundBtn = document.getElementById('sound-btn');
+
+        let canvasW = 960;
+        let canvasH = 540;
+        let groundY = Math.round(canvasH * 0.74);
+
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvasW = Math.max(320, Math.floor(rect.width));
+            canvasH = Math.max(180, Math.floor(rect.height));
+
+            canvas.width = canvasW * dpr;
+            canvas.height = canvasH * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const oldGroundY = groundY;
+            groundY = Math.round(canvasH * 0.74);
+            const deltaY = groundY - oldGroundY;
+
+            if (typeof player !== 'undefined') {
+                player.y += deltaY;
+                if (player.onGround) {
+                    player.y = groundY - GAME_CONFIG.PLAYER_SIZE;
+                }
+            }
+            if (typeof obstacles !== 'undefined') {
+                obstacles.forEach(obs => { obs.y += deltaY; });
+            }
+            if (typeof powerUps !== 'undefined') {
+                powerUps.forEach(pu => { pu.y += deltaY; });
+            }
+            if (typeof portal !== 'undefined' && portal) {
+                portal.y += deltaY;
+            }
+        }
+
+        // =========================================================================
+        // 3. RETRO ARCADE SFX & PROGRESSIVE SOUNDTRACK (WEB AUDIO API)
+        // =========================================================================
+        let soundEnabled = true;
+        let audioCtx = null;
+        let beatStep = 0;
+        let beatTimer = 0;
+
+        const BASS_NOTES = [110, 110, 220, 110, 130.81, 130.81, 146.83, 164.81, 110, 110, 220, 110, 164.81, 146.83, 130.81, 98];
+        const ARP_NOTES = [440, 523.25, 659.25, 880, 523.25, 659.25, 783.99, 1046.5, 587.33, 698.46, 880, 1174.66, 659.25, 783.99, 987.77, 1318.5];
+        const LEAD_NOTES = [880, 0, 1046.5, 880, 1318.5, 0, 1174.66, 1046.5, 1174.66, 0, 1318.5, 1567.98, 1318.5, 1174.66, 1046.5, 987.77];
+
+        function getAudioContext() {
+            if (!soundEnabled) return null;
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playTone(freq, type, duration, volume = 0.08, slideTo = null, delaySec = 0) {
+            const ac = getAudioContext();
+            if (!ac || !freq) return;
+            const start = ac.currentTime + delaySec;
+            const osc = ac.createOscillator();
+            const gain = ac.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
+            if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, start + duration);
+
+            gain.gain.setValueAtTime(volume, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+            osc.connect(gain);
+            gain.connect(ac.destination);
+            osc.start(start);
+            osc.stop(start + duration);
+        }
+
+        function playNoiseHiHat() {
+            const ac = getAudioContext();
+            if (!ac) return;
+            const now = ac.currentTime;
+            const bufferSize = ac.sampleRate * 0.04;
+            const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+            const noise = ac.createBufferSource();
+            noise.buffer = buffer;
+            const filter = ac.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 6500;
+
+            const gain = ac.createGain();
+            gain.gain.setValueAtTime(0.032, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(ac.destination);
+            noise.start(now);
+        }
+
+        function updateSynthBeat(dt) {
+            if (!soundEnabled) return;
+            const stepDuration = DIFFICULTY_LEVELS[currentDifficulty].beatSec;
+            beatTimer += dt;
+            if (beatTimer < stepDuration) return;
+            beatTimer -= stepDuration;
+
+            const pct = Math.min(1, elapsedRunTime / GAME_CONFIG.LEVEL_DURATION_SEC);
+            const idx = beatStep % 16;
+
+            playTone(BASS_NOTES[idx], 'sawtooth', 0.11, 0.045);
+
+            if (pct >= 0.20) {
+                if (idx % 4 === 0) playTone(135, 'sine', 0.12, 0.11, 36);
+                if (idx % 4 === 2) playNoiseHiHat();
+            }
+
+            if (pct >= 0.45) {
+                playTone(ARP_NOTES[idx], 'triangle', 0.10, 0.04);
+            }
+
+            if (pct >= 0.72 && LEAD_NOTES[idx] > 0) {
+                playTone(LEAD_NOTES[idx], 'square', 0.14, 0.035);
+            }
+
+            beatStep++;
+        }
+
+        // Retro Arcade Sound Effects (Jump, Score Point, Shield Pickup, Game Over)
+        function sfxJump() {
+            playTone(230, 'square', 0.14, 0.08, 620);
+        }
+
+        function sfxScorePoint() {
+            playTone(659.25, 'square', 0.07, 0.07, null, 0);
+            playTone(987.77, 'square', 0.12, 0.07, null, 0.06);
+        }
+
+        function sfxOrbRing() {
+            playTone(480, 'triangle', 0.14, 0.08, 920);
+        }
+
+        function sfxShieldPickup() {
+            [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+                playTone(f, 'square', 0.10, 0.07, null, idx * 0.045);
+            });
+        }
+
+        function sfxShieldBlock() {
+            playTone(320, 'sawtooth', 0.16, 0.09, 140);
+        }
+
+        function sfxGameOver() {
+            const notes = [392.0, 349.23, 311.13, 220.0];
+            notes.forEach((f, i) => {
+                playTone(f, 'sawtooth', 0.18, 0.09, f * 0.85, i * 0.11);
+            });
+        }
+
+        function sfxPortalWin() {
+            [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+                playTone(f, 'triangle', 0.28, 0.09, null, i * 0.075);
+            });
+        }
+
+        // =========================================================================
+        // 4. 3D PERSPECTIVE PROJECTION ENGINE
+        // =========================================================================
+        let dynamicCamera = true;
+        let camOffsetX = 0;
+        let camOffsetY = 0;
+
+        function project3D(worldX, worldY, worldZ) {
+            const vanishX = canvasW * 0.46 + camOffsetX;
+            const vanishY = groundY - canvasH * 0.24 + camOffsetY;
+            const focalLength = 520;
+            const scale = focalLength / (focalLength + worldZ);
+            return {
+                x: vanishX + (worldX - vanishX) * scale,
+                y: vanishY + (worldY - vanishY) * scale,
+                scale
+            };
+        }
+
+        function draw3DBox(x, y, w, h, zFront, zBack, colors) {
+            const fTL = project3D(x, y, zFront);
+            const fTR = project3D(x + w, y, zFront);
+            const fBR = project3D(x + w, y + h, zFront);
+            const fBL = project3D(x, y + h, zFront);
+
+            const bTL = project3D(x, y, zBack);
+            const bTR = project3D(x + w, y, zBack);
+            const bBR = project3D(x + w, y + h, zBack);
+
+            // Top Face
+            ctx.fillStyle = colors.top;
+            ctx.beginPath();
+            ctx.moveTo(fTL.x, fTL.y);
+            ctx.lineTo(bTL.x, bTL.y);
+            ctx.lineTo(bTR.x, bTR.y);
+            ctx.lineTo(fTR.x, fTR.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = colors.stroke;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Right Side Face
+            ctx.fillStyle = colors.side;
+            ctx.beginPath();
+            ctx.moveTo(fTR.x, fTR.y);
+            ctx.lineTo(bTR.x, bTR.y);
+            ctx.lineTo(bBR.x, bBR.y);
+            ctx.lineTo(fBR.x, fBR.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Front Face
+            ctx.fillStyle = colors.front;
+            ctx.beginPath();
+            ctx.moveTo(fTL.x, fTL.y);
+            ctx.lineTo(fTR.x, fTR.y);
+            ctx.lineTo(fBR.x, fBR.y);
+            ctx.lineTo(fBL.x, fBL.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function draw3DPyramidSpike(x, y, w, h, zFront, zBack, inverted = false) {
+            const baseY = inverted ? y : y + h;
+            const apexY = inverted ? y + h : y;
+            const midZ = (zFront + zBack) * 0.5;
+
+            const apex = project3D(x + w * 0.5, apexY, midZ);
+            const fL = project3D(x, baseY, zFront);
+            const fR = project3D(x + w, baseY, zFront);
+            const bR = project3D(x + w, baseY, zBack);
+
+            // Right 3D pyramid facet
+            ctx.fillStyle = '#047857';
+            ctx.beginPath();
+            ctx.moveTo(apex.x, apex.y);
+            ctx.lineTo(fR.x, fR.y);
+            ctx.lineTo(bR.x, bR.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#a7f3d0';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Front 3D pyramid facet
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.moveTo(apex.x, apex.y);
+            ctx.lineTo(fL.x, fL.y);
+            ctx.lineTo(fR.x, fR.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // =========================================================================
+        // 5. GAME STATE, SCORING, SHIELD POWER-UP & PLAYER OBJECT
+        // =========================================================================
+        let gameState = 'START'; // 'START' | 'PLAYING' | 'GAMEOVER' | 'WON'
+        let attemptCount = 1;
+        let currentScore = 0;
+        let lastScoreMilestone = 0;
+        let elapsedRunTime = 0;
+        let gridScrollX = 0;
+        let towerScrollX = 0;
+        let screenShake = 0;
+        let attemptBannerTimer = 1.4;
+        let spaceHeld = false;
+        let practiceMode = false;
+        let checkpoints = [];
+
+        // Rare Shield Power-Up State (spawns every 15s, lasts 5s)
+        let shieldSpawnTimer = 0;
+        let shieldRemainingSec = 0;
+        let powerUps = []; // { x, y, w, h, collected }
+
+        const player = {
+            x: 165,
+            y: groundY - GAME_CONFIG.PLAYER_SIZE,
+            vy: 0,
+            rotation: 0,
+            onGround: true,
+            trail: []
+        };
+
+        let obstacles = []; // { type: 'spike' | 'ceiling_spike' | 'block' | 'orb', x, y, w, h, used, passed }
+        let portal = null;
+        let particles = [];
+
+        const bgTowers = Array.from({ length: 14 }, (_, i) => ({
+            x: i * 170,
+            w: 55 + (i % 3) * 28,
+            h: 130 + (i % 4) * 55,
+            z: 180 + (i % 3) * 90
+        }));
+
+        // Difficulty Curve: first 15s is an easier warm-up (85% base speed),
+        // then speed gradually ramps up every 10 points scored!
+        function getEffectiveScrollSpeed() {
+            const baseSpeed = GAME_CONFIG.PLAYER_SPEED;
+            if (elapsedRunTime < 15) {
+                const warmupRatio = elapsedRunTime / 15;
+                return baseSpeed * (0.85 + 0.15 * warmupRatio);
+            }
+            const speedTiers = Math.floor(currentScore / 10);
+            const tierMultiplier = Math.min(1.55, 1 + speedTiers * 0.045);
+            return baseSpeed * tierMultiplier;
+        }
+
+        function addPoints(pts) {
+            if (pts <= 0) return;
+            currentScore += pts;
+            scoreEl.textContent = currentScore;
+
+            if (currentScore > bestScoreByDifficulty[currentDifficulty]) {
+                saveBestScore(currentDifficulty, currentScore);
+                bestEl.textContent = currentScore;
+            }
+
+            const milestone = Math.floor(currentScore / 10);
+            if (milestone > lastScoreMilestone) {
+                lastScoreMilestone = milestone;
+                sfxScorePoint();
+            }
+        }
+
+        function selectDifficulty(diffKey) {
+            if (!DIFFICULTY_LEVELS[diffKey]) return;
+            currentDifficulty = diffKey;
+            const cfg = DIFFICULTY_LEVELS[diffKey];
+
+            GAME_CONFIG.PLAYER_SPEED = cfg.speed;
+            GAME_CONFIG.LEVEL_DURATION_SEC = cfg.duration;
+
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.diff === diffKey);
+            });
+
+            levelNameEl.textContent = diffKey;
+            attemptCount = 1;
+            currentScore = 0;
+            lastScoreMilestone = 0;
+            scoreEl.textContent = '0';
+            bestEl.textContent = bestScoreByDifficulty[diffKey];
+            progressEl.textContent = '0';
+            checkpoints = [];
+            elapsedRunTime = 0;
+            shieldSpawnTimer = 0;
+            shieldRemainingSec = 0;
+            powerUps = [];
+            player.y = groundY - GAME_CONFIG.PLAYER_SIZE;
+            player.vy = 0;
+            player.rotation = 0;
+            player.onGround = true;
+            player.trail = [];
+            obstacles = [];
+            portal = null;
+            gameState = 'START';
+        }
+
+        function resetGame(incrementAttempt = false) {
+            if (incrementAttempt) {
+                attemptCount++;
+            }
+            gameState = 'PLAYING';
+            attemptBannerTimer = 1.3;
+            screenShake = 0;
+            shieldRemainingSec = 0;
+            powerUps = [];
+
+            if (practiceMode && checkpoints.length > 0) {
+                const cp = checkpoints[checkpoints.length - 1];
+                elapsedRunTime = cp.elapsedRunTime;
+                currentScore = cp.score;
+                lastScoreMilestone = Math.floor(currentScore / 10);
+                player.y = cp.playerY;
+                player.vy = 0;
+                player.rotation = 0;
+                player.onGround = cp.onGround;
+                player.trail = [];
+                obstacles = cp.obstacles.map(o => ({ ...o, used: false }));
+                portal = cp.portal ? { ...cp.portal } : null;
+            } else {
+                elapsedRunTime = 0;
+                currentScore = 0;
+                lastScoreMilestone = 0;
+                shieldSpawnTimer = 0;
+                beatStep = 0;
+                beatTimer = 0;
+                player.y = groundY - GAME_CONFIG.PLAYER_SIZE;
+                player.vy = 0;
+                player.rotation = 0;
+                player.onGround = true;
+                player.trail = [];
+                buildHandcraftedLevel(currentDifficulty);
+            }
+
+            particles = [];
+            scoreEl.textContent = currentScore;
+            bestEl.textContent = bestScoreByDifficulty[currentDifficulty];
+            progressEl.textContent = Math.min(100, Math.floor((elapsedRunTime / GAME_CONFIG.LEVEL_DURATION_SEC) * 100));
+        }
+
+        function savePracticeCheckpoint() {
+            if (!practiceMode || gameState !== 'PLAYING') return;
+            checkpoints.push({
+                elapsedRunTime,
+                score: currentScore,
+                playerY: player.y,
+                onGround: player.onGround,
+                obstacles: obstacles.map(o => ({ ...o })),
+                portal: portal ? { ...portal } : null
+            });
+            if (checkpoints.length > 12) checkpoints.shift();
+        }
+
+        // =========================================================================
+        // 6. HANDCRAFTED BEATABLE LEVEL ARCHITECTURES & PARTICLE HELPER
+        // =========================================================================
+        function spawnParticles(x, y, color, count = 12) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 90 + Math.random() * 290;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 140,
+                    size: 4 + Math.random() * 6,
+                    color,
+                    alpha: 1
+                });
+            }
+        }
+
+        function buildHandcraftedLevel(diffKey) {
+            obstacles = [];
+            const speed = DIFFICULTY_LEVELS[diffKey].speed;
+            const startX = player.x + speed * 1.45;
+            const pSize = GAME_CONFIG.PLAYER_SIZE;
+
+            const addSpike = (t, count = 1, yOffset = 0) => {
+                const sw = 32;
+                const sh = 34;
+                for (let c = 0; c < count; c++) {
+                    obstacles.push({
+                        type: 'spike',
+                        x: startX + t * speed + c * sw,
+                        y: groundY - sh - yOffset,
+                        w: sw,
+                        h: sh,
+                        passed: false
+                    });
+                }
+            };
+
+            const addCeilingSpike = (t, count = 1, bottomClearance = 56) => {
+                const sw = 32;
+                const sh = 34;
+                for (let c = 0; c < count; c++) {
+                    obstacles.push({
+                        type: 'ceiling_spike',
+                        x: startX + t * speed + c * sw,
+                        y: groundY - bottomClearance - sh,
+                        w: sw,
+                        h: sh,
+                        passed: false
+                    });
+                }
+            };
+
+            const addBlock = (t, widthBlocks = 2, heightLevel = 1) => {
+                const bw = widthBlocks * 44;
+                const bh = 32;
+                const by = groundY - heightLevel * 44;
+                obstacles.push({
+                    type: 'block',
+                    x: startX + t * speed,
+                    y: by,
+                    w: bw,
+                    h: bh,
+                    passed: false
+                });
+            };
+
+            const addOrb = (t, heightAboveGround = 78) => {
+                obstacles.push({
+                    type: 'orb',
+                    x: startX + t * speed,
+                    y: groundY - heightAboveGround - 16,
+                    w: 32,
+                    h: 32,
+                    used: false,
+                    passed: false
+                });
+            };
+
+            if (diffKey === 'EASY') {
+                addSpike(0.5, 1);
+                addSpike(2.3, 1);
+                addBlock(4.0, 3, 1);
+                addSpike(6.2, 1);
+                addBlock(8.0, 3, 1);
+                addBlock(9.4, 3, 2);
+                addSpike(11.8, 1);
+                addSpike(13.6, 2);
+                addSpike(15.4, 3);
+                addOrb(15.65, 86);
+                addBlock(17.8, 4, 1);
+                addSpike(20.0, 1);
+                addSpike(21.9, 2);
+                addBlock(23.8, 3, 1);
+            } else if (diffKey === 'NORMAL') {
+                addSpike(0.4, 1);
+                addSpike(2.0, 2);
+                addBlock(3.6, 3, 1);
+                addBlock(4.9, 3, 2);
+                addSpike(7.2, 2);
+                addSpike(8.9, 3);
+                addOrb(9.1, 88);
+                addBlock(11.2, 3, 1);
+                addSpike(11.55, 1, 44);
+                addSpike(13.6, 2);
+                addCeilingSpike(15.2, 2, pSize + 24);
+                addBlock(17.0, 2, 1);
+                addBlock(18.1, 2, 2);
+                addBlock(19.2, 3, 3);
+                addSpike(21.6, 2);
+                addSpike(23.4, 3);
+                addOrb(23.6, 90);
+                addSpike(25.8, 2);
+                addBlock(27.5, 3, 1);
+                addSpike(29.6, 2);
+            } else if (diffKey === 'HARD') {
+                addSpike(0.3, 2);
+                addSpike(1.75, 3);
+                addBlock(3.2, 2, 1);
+                addBlock(4.15, 2, 2);
+                addBlock(5.1, 3, 3);
+                addSpike(5.45, 1, 132);
+                addSpike(7.5, 3);
+                addOrb(7.65, 92);
+                addSpike(9.5, 4);
+                addOrb(9.65, 90);
+                addOrb(10.35, 132);
+                addCeilingSpike(12.2, 3, pSize + 18);
+                addSpike(14.0, 2);
+                addBlock(15.4, 3, 1);
+                addSpike(15.8, 1, 44);
+                addBlock(17.2, 3, 2);
+                addSpike(19.4, 3);
+                addSpike(21.1, 2);
+                addCeilingSpike(22.6, 3, pSize + 18);
+                addSpike(24.4, 4);
+                addOrb(24.55, 92);
+                addOrb(25.25, 134);
+                addBlock(27.2, 2, 1);
+                addBlock(28.1, 2, 2);
+                addSpike(30.2, 3);
+                addSpike(32.1, 3);
+            } else {
+                // DEMON (10★)
+                addSpike(0.25, 3);
+                addSpike(1.55, 3);
+                addBlock(2.85, 2, 1);
+                addBlock(3.7, 2, 2);
+                addBlock(4.55, 2, 3);
+                addSpike(4.78, 1, 132);
+                addSpike(6.6, 4);
+                addOrb(6.75, 92);
+                addOrb(7.38, 136);
+                addCeilingSpike(9.0, 4, pSize + 15);
+                addSpike(10.6, 3);
+                addSpike(11.95, 3);
+                addBlock(13.3, 3, 1);
+                addSpike(13.68, 1, 44);
+                addBlock(14.9, 3, 2);
+                addSpike(15.28, 1, 88);
+                addSpike(17.2, 5);
+                addOrb(17.35, 92);
+                addOrb(17.98, 138);
+                addSpike(19.9, 3);
+                addCeilingSpike(21.3, 4, pSize + 15);
+                addBlock(22.9, 2, 1);
+                addSpike(24.3, 3);
+                addSpike(25.65, 3);
+                addSpike(27.3, 5);
+                addOrb(27.45, 92);
+                addOrb(28.08, 138);
+                addBlock(30.0, 2, 1);
+                addBlock(30.85, 2, 2);
+                addSpike(32.6, 3);
+                addSpike(34.1, 3);
+                addSpike(35.6, 3);
+            }
+
+            portal = {
+                x: startX + (GAME_CONFIG.LEVEL_DURATION_SEC - 1.35) * speed,
+                y: groundY - 122,
+                w: 58,
+                h: 122
+            };
+        }
+
+        // =========================================================================
+        // 7. INPUT HANDLING (SPACEBAR, CLICK/TAP, R TO RESTART)
+        // =========================================================================
+        function triggerJump(isFreshPress = true) {
+            getAudioContext();
+
+            if (gameState === 'START' || gameState === 'WON' || gameState === 'GAMEOVER') {
+                resetGame(gameState !== 'START');
+                return;
+            }
+
+            // 1. Ground / Platform Jump
+            if (player.onGround) {
+                player.vy = GAME_CONFIG.JUMP_VELOCITY;
+                player.onGround = false;
+                sfxJump();
+                spawnParticles(player.x + GAME_CONFIG.PLAYER_SIZE * 0.5, player.y + GAME_CONFIG.PLAYER_SIZE, '#6ee7b7', 8);
+                if (practiceMode && Math.random() < 0.45) {
+                    savePracticeCheckpoint();
+                }
+                return;
+            }
+
+            // 2. Mid-Air Green Jump Orb Activation (fresh Spacebar press!)
+            if (isFreshPress) {
+                const pSize = GAME_CONFIG.PLAYER_SIZE;
+                for (let i = 0; i < obstacles.length; i++) {
+                    const obs = obstacles[i];
+                    if (obs.type === 'orb' && !obs.used) {
+                        const dx = (player.x + pSize * 0.5) - (obs.x + obs.w * 0.5);
+                        const dy = (player.y + pSize * 0.5) - (obs.y + obs.h * 0.5);
+                        if (Math.hypot(dx, dy) <= 58) {
+                            obs.used = true;
+                            player.vy = GAME_CONFIG.JUMP_VELOCITY * 0.96;
+                            addPoints(5);
+                            sfxOrbRing();
+                            spawnParticles(obs.x + obs.w * 0.5, obs.y + obs.h * 0.5, '#a7f3d0', 14);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                const isFresh = !spaceHeld;
+                spaceHeld = true;
+                triggerJump(isFresh);
+            } else if (e.code === 'KeyR') {
+                checkpoints = [];
+                resetGame(true);
+            } else if (e.code === 'KeyP') {
+                practiceBtn.click();
+            } else if (e.code === 'Digit1') {
+                selectDifficulty('EASY');
+            } else if (e.code === 'Digit2') {
+                selectDifficulty('NORMAL');
+            } else if (e.code === 'Digit3') {
+                selectDifficulty('HARD');
+            } else if (e.code === 'Digit4') {
+                selectDifficulty('DEMON');
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                spaceHeld = false;
+            }
+        });
+
+        canvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const isFresh = !spaceHeld;
+            spaceHeld = true;
+            triggerJump(isFresh);
+        });
+
+        window.addEventListener('pointerup', () => {
+            spaceHeld = false;
+        });
+
+        jumpBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const isFresh = !spaceHeld;
+            spaceHeld = true;
+            triggerJump(isFresh);
+        });
+
+        practiceBtn.addEventListener('click', () => {
+            practiceMode = !practiceMode;
+            checkpoints = [];
+            practiceBtn.textContent = practiceMode ? 'PRACTICE: ON' : 'PRACTICE: OFF';
+            practiceBtn.style.borderColor = practiceMode ? '#a7f3d0' : '#10b981';
+        });
+
+        camBtn.addEventListener('click', () => {
+            dynamicCamera = !dynamicCamera;
+            camBtn.textContent = dynamicCamera ? '3D ANGLE: DYNAMIC' : '3D ANGLE: LOCKED';
+            if (!dynamicCamera) {
+                camOffsetX = 0;
+                camOffsetY = 0;
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            checkpoints = [];
+            resetGame(true);
+        });
+
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? '🔊 UNMUTED' : '🔇 MUTED';
+            soundBtn.classList.toggle('muted', !soundEnabled);
+        });
+
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectDifficulty(btn.dataset.diff);
+            });
+        });
+
+        // =========================================================================
+        // 8. TIGHTENED HITBOXES, SUB-STEPPED MOVEMENT & COLLISION
+        // =========================================================================
+        function checkAABB(ax, ay, aw, ah, bx, by, bw, bh) {
+            return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+        }
+
+        // Exact triangle vs AABB intersection so spike hitboxes match the rendered pyramid silhouette
+        function pointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
+            const v0x = cx - ax, v0y = cy - ay;
+            const v1x = bx - ax, v1y = by - ay;
+            const v2x = px - ax, v2y = py - ay;
+
+            const dot00 = v0x * v0x + v0y * v0y;
+            const dot01 = v0x * v1x + v0y * v1y;
+            const dot02 = v0x * v2x + v0y * v2y;
+            const dot11 = v1x * v1x + v1y * v1y;
+            const dot12 = v1x * v2x + v1y * v2y;
+
+            const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+            const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+            return u >= 0 && v >= 0 && u + v <= 1;
+        }
+
+        function checkSpikeHitbox(px, py, pw, ph, spike) {
+            // Quick AABB broadphase
+            if (!checkAABB(px, py, pw, ph, spike.x, spike.y, spike.w, spike.h)) {
+                return false;
+            }
+            const inverted = spike.type === 'ceiling_spike';
+            const ax = spike.x + spike.w * 0.5;
+            const ay = inverted ? spike.y + spike.h : spike.y;
+            const bx = spike.x + 2;
+            const by = inverted ? spike.y : spike.y + spike.h;
+            const cx = spike.x + spike.w - 2;
+            const cy = by;
+
+            // Check if spike apex enters player box or any player corner/edge enters spike triangle
+            if (ax >= px && ax <= px + pw && ay >= py && ay <= py + ph) return true;
+
+            const testPoints = [
+                [px, py],
+                [px + pw, py],
+                [px + pw, py + ph],
+                [px, py + ph],
+                [px + pw * 0.5, py + ph],
+                [px + pw * 0.5, py]
+            ];
+            for (let i = 0; i < testPoints.length; i++) {
+                if (pointInTriangle(testPoints[i][0], testPoints[i][1], ax, ay, bx, by, cx, cy)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function triggerPlayerGameOver() {
+            gameState = 'GAMEOVER';
+            screenShake = 14;
+            sfxGameOver();
+            if (currentScore > bestScoreByDifficulty[currentDifficulty]) {
+                saveBestScore(currentDifficulty, currentScore);
+                bestEl.textContent = currentScore;
+            }
+            spawnParticles(
+                player.x + GAME_CONFIG.PLAYER_SIZE * 0.5,
+                player.y + GAME_CONFIG.PLAYER_SIZE * 0.5,
+                '#34d399',
+                34
+            );
+        }
+
+        function spawnShieldPowerUp() {
+            const pSize = GAME_CONFIG.PLAYER_SIZE;
+            const spawnX = canvasW + 90;
+            // Place cleanly above ground or near the player's reachable jump arc
+            const spawnY = groundY - pSize - 58;
+            powerUps.push({
+                x: spawnX,
+                y: spawnY,
+                w: 32,
+                h: 32,
+                collected: false
+            });
+        }
+
+        function update(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx * dt;
+                pt.y += pt.vy * dt;
+                pt.vy += 850 * dt;
+                pt.alpha -= dt * 2.1;
+                if (pt.alpha <= 0) particles.splice(i, 1);
+            }
+
+            if (screenShake > 0) {
+                screenShake = Math.max(0, screenShake - dt * 45);
+            }
+
+            if (attemptBannerTimer > 0) {
+                attemptBannerTimer = Math.max(0, attemptBannerTimer - dt);
+            }
+
+            if (gameState !== 'PLAYING') {
+                gridScrollX = (gridScrollX + GAME_CONFIG.PLAYER_SPEED * 0.35 * dt) % 60;
+                return;
+            }
+
+            // Hold-Space auto-bunnyhop on ground
+            if (spaceHeld && player.onGround) {
+                triggerJump(false);
+            }
+
+            // Progressive Geometry Dash Synth Music
+            updateSynthBeat(dt);
+
+            // Elapsed time, warm-up + progressive speed curve & continuous survival scoring
+            const prevSecond = Math.floor(elapsedRunTime);
+            elapsedRunTime += dt;
+            const currSecond = Math.floor(elapsedRunTime);
+            if (currSecond > prevSecond) {
+                addPoints(2 * (currSecond - prevSecond));
+            }
+
+            const currentSpeed = getEffectiveScrollSpeed();
+            const progressPct = Math.min(100, Math.floor((elapsedRunTime / GAME_CONFIG.LEVEL_DURATION_SEC) * 100));
+            progressEl.textContent = progressPct;
+
+            // Rare Shield Power-Up Spawner (every 15 seconds) & Countdown Timer
+            shieldSpawnTimer += dt;
+            if (shieldSpawnTimer >= GAME_CONFIG.SHIELD_SPAWN_SEC) {
+                shieldSpawnTimer -= GAME_CONFIG.SHIELD_SPAWN_SEC;
+                spawnShieldPowerUp();
+            }
+
+            if (shieldRemainingSec > 0) {
+                shieldRemainingSec = Math.max(0, shieldRemainingSec - dt);
+            }
+
+            if (dynamicCamera) {
+                const targetY = (groundY - GAME_CONFIG.PLAYER_SIZE - player.y) * 0.24;
+                camOffsetY += (targetY - camOffsetY) * Math.min(1, dt * 6);
+                camOffsetX = Math.sin(elapsedRunTime * 0.9) * 16;
+            }
+
+            gridScrollX = (gridScrollX + currentSpeed * dt) % 60;
+            towerScrollX += currentSpeed * 0.22 * dt;
+
+            // Sub-stepped physics & collision checks so fast movement NEVER clips through floors or barriers
+            const pSize = GAME_CONFIG.PLAYER_SIZE;
+            const SUB_STEPS = 4;
+            const subDt = dt / SUB_STEPS;
+
+            for (let step = 0; step < SUB_STEPS; step++) {
+                const prevBottom = player.y + pSize;
+
+                player.vy += GAME_CONFIG.GRAVITY * subDt;
+                player.y += player.vy * subDt;
+                player.onGround = false;
+
+                // Floor anti-clipping clamp
+                if (player.y + pSize >= groundY) {
+                    player.y = groundY - pSize;
+                    player.vy = 0;
+                    player.onGround = true;
+                }
+
+                // Advance obstacles & resolve tight collisions
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    obs.x -= currentSpeed * subDt;
+
+                    if (obs.x + obs.w < -140) {
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+
+                    // Award +2 points when cleanly passing an obstacle
+                    if (!obs.passed && obs.x + obs.w < player.x) {
+                        obs.passed = true;
+                        addPoints(2);
+                    }
+
+                    if (obs.type === 'block') {
+                        // Swept top landing check prevents tunneling through thin platforms
+                        if (
+                            player.x + pSize - 2 > obs.x &&
+                            player.x + 2 < obs.x + obs.w &&
+                            prevBottom <= obs.y + 8 &&
+                            player.y + pSize >= obs.y &&
+                            player.vy >= 0
+                        ) {
+                            player.y = obs.y - pSize;
+                            player.vy = 0;
+                            player.onGround = true;
+                        } else if (checkAABB(player.x + 1, player.y + 1, pSize - 2, pSize - 2, obs.x, obs.y, obs.w, obs.h)) {
+                            if (shieldRemainingSec > 0) {
+                                // Shield smashes through blocking barrier safely!
+                                sfxShieldBlock();
+                                spawnParticles(obs.x + obs.w * 0.5, obs.y + obs.h * 0.5, '#fbbf24', 18);
+                                obstacles.splice(i, 1);
+                            } else {
+                                triggerPlayerGameOver();
+                                return;
+                            }
+                        }
+                    } else if (obs.type === 'spike' || obs.type === 'ceiling_spike') {
+                        if (checkSpikeHitbox(player.x + 2, player.y + 2, pSize - 4, pSize - 4, obs)) {
+                            if (shieldRemainingSec > 0) {
+                                sfxShieldBlock();
+                                spawnParticles(obs.x + obs.w * 0.5, obs.y + obs.h * 0.5, '#fbbf24', 18);
+                                obstacles.splice(i, 1);
+                            } else {
+                                triggerPlayerGameOver();
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // Advance & check rare Shield Power-Up collection
+                for (let i = powerUps.length - 1; i >= 0; i--) {
+                    const pu = powerUps[i];
+                    pu.x -= currentSpeed * subDt;
+                    if (pu.x + pu.w < -80) {
+                        powerUps.splice(i, 1);
+                        continue;
+                    }
+                    if (!pu.collected && checkAABB(player.x, player.y, pSize, pSize, pu.x, pu.y, pu.w, pu.h)) {
+                        pu.collected = true;
+                        shieldRemainingSec = GAME_CONFIG.SHIELD_DURATION_SEC;
+                        addPoints(10);
+                        sfxShieldPickup();
+                        spawnParticles(pu.x + pu.w * 0.5, pu.y + pu.h * 0.5, '#fde047', 24);
+                        powerUps.splice(i, 1);
+                    }
+                }
+
+                // Victory Portal Check
+                if (portal) {
+                    portal.x -= currentSpeed * subDt;
+                    if (checkAABB(player.x, player.y, pSize, pSize, portal.x + 12, portal.y, portal.w - 12, portal.h)) {
+                        gameState = 'WON';
+                        addPoints(25);
+                        progressEl.textContent = '100';
+                        sfxPortalWin();
+                        spawnParticles(portal.x + portal.w * 0.5, portal.y + portal.h * 0.5, '#6ee7b7', 42);
+                        return;
+                    }
+                }
+            }
+
+            // Cube Rotation
+            if (!player.onGround) {
+                player.rotation += 7.8 * dt;
+            } else {
+                const snapTarget = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+                player.rotation += (snapTarget - player.rotation) * Math.min(1, dt * 26);
+            }
+
+            // Ribbon Trail
+            player.trail.push({ x: player.x + pSize * 0.5, y: player.y + pSize * 0.5 });
+            if (player.trail.length > 18) player.trail.shift();
+            for (let i = 0; i < player.trail.length; i++) {
+                player.trail[i].x -= currentSpeed * dt;
+            }
+        }
+
+        // =========================================================================
+        // 9. 3D RENDERING PIPELINE (PURE HTML5 CANVAS SHAPES)
+        // =========================================================================
+        function render() {
+            ctx.save();
+
+            if (screenShake > 0) {
+                const sx = (Math.random() - 0.5) * screenShake;
+                const sy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(sx, sy);
+            }
+
+            // 1. Deep Emerald Cyber Sky
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvasH);
+            skyGrad.addColorStop(0, '#010d07');
+            skyGrad.addColorStop(0.55, '#042917');
+            skyGrad.addColorStop(1, '#094c2c');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvasW, canvasH);
+
+            // 2. Background 3D Cyber Monolith Towers
+            bgTowers.forEach((t, idx) => {
+                const wrapW = bgTowers.length * 170;
+                const rx = ((t.x - towerScrollX) % wrapW + wrapW) % wrapW - 140;
+                const topY = groundY - t.h;
+                draw3DBox(rx, topY, t.w, t.h, t.z, t.z + 55, {
+                    top: '#065f46',
+                    side: '#022c1b',
+                    front: idx % 2 === 0 ? '#033b24' : '#04472c',
+                    stroke: 'rgba(52, 211, 153, 0.25)'
+                });
+            });
+
+            // 3. 3D Emerald Runway Floor Plane
+            const zFront = 0;
+            const zBack = GAME_CONFIG.TRACK_DEPTH;
+            const gFL = project3D(-120, groundY, zFront);
+            const gFR = project3D(canvasW + 120, groundY, zFront);
+            const gBR = project3D(canvasW + 120, groundY, zBack);
+            const gBL = project3D(-120, groundY, zBack);
+
+            const floorGrad = ctx.createLinearGradient(0, gBL.y, 0, canvasH);
+            floorGrad.addColorStop(0, '#043820');
+            floorGrad.addColorStop(0.35, '#065f46');
+            floorGrad.addColorStop(1, '#02150c');
+            ctx.fillStyle = floorGrad;
+            ctx.beginPath();
+            ctx.moveTo(gBL.x, gBL.y);
+            ctx.lineTo(gBR.x, gBR.y);
+            ctx.lineTo(gFR.x, canvasH);
+            ctx.lineTo(gFL.x, canvasH);
+            ctx.closePath();
+            ctx.fill();
+
+            // 3D Floor Grid Lines
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.35)';
+            ctx.lineWidth = 1.3;
+            for (let gx = -gridScrollX; gx < canvasW + 120; gx += 60) {
+                const p1 = project3D(gx, groundY, zFront);
+                const p2 = project3D(gx, groundY, zBack);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+
+            // Neon Glowing Front & Back Runway Rails
+            ctx.strokeStyle = '#6ee7b7';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(gFL.x, gFL.y);
+            ctx.lineTo(gFR.x, gFR.y);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(110, 231, 183, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(gBL.x, gBL.y);
+            ctx.lineTo(gBR.x, gBR.y);
+            ctx.stroke();
+
+            // 4. 3D Obstacles (Blocks, Pyramid Spikes, Ceiling Spikes, Jump Orbs)
+            const obsZFront = 16;
+            const obsZBack = 58;
+            const nowSec = performance.now() * 0.006;
+
+            for (let i = 0; i < obstacles.length; i++) {
+                const obs = obstacles[i];
+                if (obs.type === 'block') {
+                    draw3DBox(obs.x, obs.y, obs.w, obs.h, obsZFront, obsZBack, {
+                        top: '#34d399',
+                        side: '#047857',
+                        front: '#065f46',
+                        stroke: '#a7f3d0'
+                    });
+                } else if (obs.type === 'spike') {
+                    draw3DPyramidSpike(obs.x, obs.y, obs.w, obs.h, obsZFront + 4, obsZBack - 4, false);
+                } else if (obs.type === 'ceiling_spike') {
+                    draw3DPyramidSpike(obs.x, obs.y, obs.w, obs.h, obsZFront + 4, obsZBack - 4, true);
+                } else if (obs.type === 'orb') {
+                    const orbCenter = project3D(obs.x + obs.w * 0.5, obs.y + obs.h * 0.5, (obsZFront + obsZBack) * 0.5);
+                    const pulse = 1 + Math.sin(nowSec * 1.6) * 0.14;
+                    const r = (obs.w * 0.5) * orbCenter.scale * pulse;
+
+                    // Outer pulsing ring
+                    ctx.strokeStyle = obs.used ? 'rgba(167, 243, 208, 0.35)' : '#6ee7b7';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(orbCenter.x, orbCenter.y, r + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Glowing core orb
+                    ctx.fillStyle = obs.used ? '#065f46' : '#34d399';
+                    ctx.beginPath();
+                    ctx.arc(orbCenter.x, orbCenter.y, r, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ecfdf5';
+                    ctx.beginPath();
+                    ctx.arc(orbCenter.x, orbCenter.y, r * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // 4B. Rare Glowing 5-Second Shield Power-Up Pickup
+            for (let i = 0; i < powerUps.length; i++) {
+                const pu = powerUps[i];
+                const bobY = Math.sin(nowSec * 1.4) * 6;
+                const puCenter = project3D(pu.x + pu.w * 0.5, pu.y + pu.h * 0.5 + bobY, (obsZFront + obsZBack) * 0.5);
+                const r = 17 * puCenter.scale;
+
+                // Outer golden aura ring
+                ctx.save();
+                ctx.translate(puCenter.x, puCenter.y);
+                ctx.rotate(nowSec * 1.2);
+                ctx.strokeStyle = '#fde047';
+                ctx.lineWidth = 2.6;
+                ctx.setLineDash([7, 5]);
+                ctx.beginPath();
+                ctx.arc(0, 0, r + 6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Shield diamond core
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(0, -r);
+                ctx.lineTo(r * 0.85, 0);
+                ctx.lineTo(0, r);
+                ctx.lineTo(-r * 0.85, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#fef9c3';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // 5. 3D Swirling Green Victory Portal
+            if (portal) {
+                const pMidZ = 37;
+                const pCenter = project3D(portal.x + portal.w * 0.5, portal.y + portal.h * 0.5, pMidZ);
+                const rx = (portal.w * 0.52) * pCenter.scale;
+                const ry = (portal.h * 0.52) * pCenter.scale;
+
+                for (let ring = 4; ring >= 1; ring--) {
+                    ctx.save();
+                    ctx.translate(pCenter.x, pCenter.y);
+                    ctx.rotate(nowSec * (ring % 2 === 0 ? 1.4 : -1.1));
+                    ctx.strokeStyle = ring === 1 ? '#ecfdf5' : ring === 2 ? '#6ee7b7' : '#10b981';
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, rx * (ring * 0.26), ry * (ring * 0.26), 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // 6. 3D Player Ribbon Trail & Dynamic Shadow
+            if (player.trail.length > 1 && gameState !== 'GAMEOVER') {
+                for (let i = 0; i < player.trail.length; i++) {
+                    const pt = player.trail[i];
+                    const ratio = (i + 1) / player.trail.length;
+                    const proj = project3D(pt.x, pt.y, 37);
+                    const sz = GAME_CONFIG.PLAYER_SIZE * 0.65 * ratio * proj.scale;
+                    ctx.fillStyle = shieldRemainingSec > 0
+                        ? `rgba(250, 204, 21, ${ratio * 0.45})`
+                        : `rgba(52, 211, 153, ${ratio * 0.35})`;
+                    ctx.fillRect(proj.x - sz * 0.5, proj.y - sz * 0.5, sz, sz);
+                }
+            }
+
+            // Ground shadow directly under player
+            const pSize = GAME_CONFIG.PLAYER_SIZE;
+            const shadowProj = project3D(player.x + pSize * 0.5, groundY, 37);
+            const heightAboveGround = Math.max(0, groundY - (player.y + pSize));
+            const shadowScale = Math.max(0.35, 1 - heightAboveGround / 280);
+            ctx.fillStyle = 'rgba(1, 13, 7, 0.65)';
+            ctx.beginPath();
+            ctx.ellipse(shadowProj.x, shadowProj.y, 20 * shadowScale, 6 * shadowScale, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 7. True 3D Rotating Emerald Player Cube (+ Active Shield Bubble)
+            if (gameState !== 'GAMEOVER') {
+                const cx = player.x + pSize * 0.5;
+                const cy = player.y + pSize * 0.5;
+                const half = pSize * 0.5;
+                const cosA = Math.cos(player.rotation);
+                const sinA = Math.sin(player.rotation);
+
+                const localCorners = [
+                    { lx: -half, ly: -half },
+                    { lx: half, ly: -half },
+                    { lx: half, ly: half },
+                    { lx: -half, ly: half }
+                ];
+
+                const frontPts = localCorners.map(c => {
+                    const rx = cx + c.lx * cosA - c.ly * sinA;
+                    const ry = cy + c.lx * sinA + c.ly * cosA;
+                    return project3D(rx, ry, 19);
+                });
+
+                const backPts = localCorners.map(c => {
+                    const rx = cx + c.lx * cosA - c.ly * sinA;
+                    const ry = cy + c.lx * sinA + c.ly * cosA;
+                    return project3D(rx, ry, 55);
+                });
+
+                // Extruded 3D side edges connecting back and front faces
+                for (let i = 0; i < 4; i++) {
+                    const next = (i + 1) % 4;
+                    ctx.fillStyle = i === 0 ? '#6ee7b7' : i === 1 ? '#059669' : '#047857';
+                    ctx.beginPath();
+                    ctx.moveTo(frontPts[i].x, frontPts[i].y);
+                    ctx.lineTo(frontPts[next].x, frontPts[next].y);
+                    ctx.lineTo(backPts[next].x, backPts[next].y);
+                    ctx.lineTo(backPts[i].x, backPts[i].y);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = '#ecfdf5';
+                    ctx.lineWidth = 1.4;
+                    ctx.stroke();
+                }
+
+                // Front Face of the Emerald Cube
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.moveTo(frontPts[0].x, frontPts[0].y);
+                ctx.lineTo(frontPts[1].x, frontPts[1].y);
+                ctx.lineTo(frontPts[2].x, frontPts[2].y);
+                ctx.lineTo(frontPts[3].x, frontPts[3].y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#ecfdf5';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner Cyber Visor Core
+                const coreProj = project3D(cx, cy, 19);
+                ctx.save();
+                ctx.translate(coreProj.x, coreProj.y);
+                ctx.rotate(player.rotation);
+                ctx.fillStyle = '#022c1b';
+                ctx.fillRect(-10 * coreProj.scale, -10 * coreProj.scale, 20 * coreProj.scale, 20 * coreProj.scale);
+                ctx.fillStyle = shieldRemainingSec > 0 ? '#fde047' : '#a7f3d0';
+                ctx.fillRect(-5 * coreProj.scale, -5 * coreProj.scale, 10 * coreProj.scale, 10 * coreProj.scale);
+                ctx.restore();
+
+                // Active 5-Second Energy Shield Dome around Player Cube
+                if (shieldRemainingSec > 0) {
+                    const shieldProj = project3D(cx, cy, 37);
+                    const shieldRadius = pSize * 0.92 * shieldProj.scale;
+                    ctx.save();
+                    ctx.strokeStyle = '#fde047';
+                    ctx.lineWidth = 3;
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
+                    ctx.beginPath();
+                    ctx.arc(shieldProj.x, shieldProj.y, shieldRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // 8. Particle Bursts
+            for (let i = 0; i < particles.length; i++) {
+                const pt = particles[i];
+                ctx.globalAlpha = Math.max(0, pt.alpha);
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x - pt.size * 0.5, pt.y - pt.size * 0.5, pt.size, pt.size);
+            }
+            ctx.globalAlpha = 1;
+
+            // 9. Authentic Geometry Dash Top Progress Bar & Music Layer Indicator
+            const barW = Math.min(420, canvasW * 0.52);
+            const barH = 11;
+            const barX = (canvasW - barW) * 0.5;
+            const barY = 18;
+            const pct = gameState === 'WON' ? 1 : Math.min(1, elapsedRunTime / GAME_CONFIG.LEVEL_DURATION_SEC);
+
+            ctx.fillStyle = 'rgba(2, 24, 13, 0.85)';
+            ctx.fillRect(barX, barY, barW, barH);
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(barX, barY, barW, barH);
+
+            ctx.fillStyle = '#34d399';
+            ctx.fillRect(barX + 2, barY + 2, Math.max(0, (barW - 4) * pct), barH - 4);
+
+            ctx.fillStyle = '#ecfdf5';
+            ctx.font = '800 11px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            const speedMult = (getEffectiveScrollSpeed() / GAME_CONFIG.PLAYER_SPEED).toFixed(2);
+            ctx.fillText(`${Math.floor(pct * 100)}% • ${speedMult}x SPD`, barX + barW + 10, barY + 9);
+
+            // Active 5-Second Shield Timer Bar on Screen
+            if (shieldRemainingSec > 0 && gameState === 'PLAYING') {
+                const sBarW = 220;
+                const sBarH = 12;
+                const sBarX = (canvasW - sBarW) * 0.5;
+                const sBarY = 40;
+                const sRatio = Math.max(0, shieldRemainingSec / GAME_CONFIG.SHIELD_DURATION_SEC);
+
+                ctx.fillStyle = 'rgba(20, 14, 2, 0.88)';
+                ctx.fillRect(sBarX, sBarY, sBarW, sBarH);
+                ctx.strokeStyle = '#fde047';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(sBarX, sBarY, sBarW, sBarH);
+
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(sBarX + 2, sBarY + 2, Math.max(0, (sBarW - 4) * sRatio), sBarH - 4);
+
+                ctx.fillStyle = '#fef08a';
+                ctx.font = '900 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`SHIELD ACTIVE: ${shieldRemainingSec.toFixed(1)}s`, canvasW * 0.5, sBarY + 24);
+            }
+
+            // Floating Attempt Banner
+            if (attemptBannerTimer > 0 && gameState === 'PLAYING') {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, attemptBannerTimer * 1.4);
+                ctx.fillStyle = '#ecfdf5';
+                ctx.font = '900 28px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`ATTEMPT ${attemptCount}`, canvasW * 0.5, canvasH * 0.28);
+                ctx.restore();
+            }
+
+            // 10. State Overlays (Start, Game Over, Victory)
+            if (gameState === 'START' || gameState === 'GAMEOVER' || gameState === 'WON') {
+                drawCenterBanner();
+            }
+
+            ctx.restore();
+        }
+
+        function drawCenterBanner() {
+            const boxW = Math.min(500, canvasW * 0.88);
+            const boxH = 205;
+            const bx = (canvasW - boxW) * 0.5;
+            const by = (canvasH - boxH) * 0.5;
+            const lvl = DIFFICULTY_LEVELS[currentDifficulty];
+            const bestForLevel = bestScoreByDifficulty[currentDifficulty];
+
+            ctx.fillStyle = 'rgba(2, 22, 12, 0.94)';
+            ctx.beginPath();
+            ctx.roundRect(bx, by, boxW, boxH, 20);
+            ctx.fill();
+            ctx.strokeStyle = gameState === 'GAMEOVER' ? '#f87171' : '#34d399';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+
+            if (gameState === 'START') {
+                ctx.fillStyle = '#6ee7b7';
+                ctx.font = '900 24px Inter, sans-serif';
+                ctx.fillText(`NEON GRID DASH 3D • ${lvl.label}`, canvasW * 0.5, by + 54);
+                ctx.fillStyle = '#a7f3d0';
+                ctx.font = '600 13px Inter, sans-serif';
+                ctx.fillText(lvl.subtitle, canvasW * 0.5, by + 88);
+                ctx.fillStyle = '#ecfdf5';
+                ctx.font = '800 15px Inter, sans-serif';
+                ctx.fillText('Press SPACEBAR or Click to Launch (Keys 1-4: Switch Level)', canvasW * 0.5, by + 142);
+            } else if (gameState === 'GAMEOVER') {
+                ctx.fillStyle = '#fca5a5';
+                ctx.font = '900 28px Inter, sans-serif';
+                ctx.fillText('GAME OVER', canvasW * 0.5, by + 48);
+
+                ctx.fillStyle = '#ecfdf5';
+                ctx.font = '800 17px Inter, sans-serif';
+                ctx.fillText(`Final Score: ${currentScore}   •   Best Score: ${bestForLevel}`, canvasW * 0.5, by + 92);
+
+                ctx.fillStyle = '#a7f3d0';
+                ctx.font = '600 13px Inter, sans-serif';
+                ctx.fillText(`Level: ${lvl.label} • Attempt #${attemptCount}`, canvasW * 0.5, by + 124);
+
+                ctx.fillStyle = '#6ee7b7';
+                ctx.font = '800 15px Inter, sans-serif';
+                ctx.fillText('Press R, SPACEBAR, or Click Anywhere to Restart Right Away', canvasW * 0.5, by + 166);
+            } else if (gameState === 'WON') {
+                ctx.fillStyle = '#6ee7b7';
+                ctx.font = '900 25px Inter, sans-serif';
+                ctx.fillText(`${lvl.label} CLEARED! 100%`, canvasW * 0.5, by + 48);
+
+                ctx.fillStyle = '#ecfdf5';
+                ctx.font = '800 17px Inter, sans-serif';
+                ctx.fillText(`Final Score: ${currentScore}   •   Best Score: ${bestForLevel}`, canvasW * 0.5, by + 92);
+
+                ctx.fillStyle = '#a7f3d0';
+                ctx.font = '600 14px Inter, sans-serif';
+                ctx.fillText(`Completed in ${attemptCount} Attempt${attemptCount === 1 ? '' : 's'}!`, canvasW * 0.5, by + 124);
+
+                ctx.fillStyle = '#ecfdf5';
+                ctx.font = '800 15px Inter, sans-serif';
+                ctx.fillText('Press R, SPACEBAR, or Click to Replay', canvasW * 0.5, by + 166);
+            }
+        }
+
+        // =========================================================================
+        // 10. MAIN LOOP & WINDOW ONLOAD INITIALIZATION
+        // =========================================================================
+        let lastTimestamp = 0;
+
+        function gameLoop(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+            lastTimestamp = timestamp;
+
+            update(dt);
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        window.onload = function () {
+            resizeCanvas();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
